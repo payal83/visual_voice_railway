@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 # Set environment variables
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# Set the default port
+# Set the default port (optional, Railway will override this)
 ENV PORT 5000  # You can set a default port, but Railway will override it.
 
 # Copy project files
@@ -20,5 +20,5 @@ COPY . .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Start the app using gunicorn
+# Start the app using gunicorn, use the environment variable for port
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:${PORT}"]
