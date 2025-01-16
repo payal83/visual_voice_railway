@@ -3,3 +3,4 @@ Pillow==9.5.0           # For working with images (PIL)
 transformers==4.30.2    # Hugging Face Transformers library
 torch==2.0.1            # PyTorch (required for Transformers)
 gtts==2.3.2             # Google Text-to-Speech
+gunicorn==20.1.0
