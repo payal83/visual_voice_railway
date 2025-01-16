@@ -21,4 +21,4 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start the app using gunicorn, use the environment variable for port
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:$PORT"]
+CMD docker run -e PORT=$PORT <your_image>
