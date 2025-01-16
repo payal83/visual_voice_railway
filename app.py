@@ -55,7 +55,7 @@ def generate_caption():
         return jsonify({"caption": caption, "audio_path": f"/static/audio/caption_audio.mp3"})
     except Exception as e:
         print(f"Error generating caption: {e}")
-        return jsonify({"error": "An error occurred while processing the image."}), 500
+        return jsonify({"error": f"An error occurred while processing the image: {e}"}), 500
 
 # Serve static files for images and audio
 @app.route('/static/<path:filename>')
