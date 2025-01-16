@@ -63,5 +63,7 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 if __name__ == "__main__":
-    port = os.getenv("PORT", 5000)  # Default to 5000 if PORT is not defined
-    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
+    port = os.environ.get("PORT", "5000")
+    if not port.isdigit():
+        raise ValueError("The port value is not a valid number.")
+    app.run(host="0.0.0.0", port=int(port), use_reloader=False)
