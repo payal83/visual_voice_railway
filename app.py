@@ -5,10 +5,10 @@ import base64
 from gtts import gTTS
 import os
 from transformers import VisionEncoderDecoderModel, ViTFeatureExtractor, AutoTokenizer
-from functools import lru_cache
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app) 
 # Directories for saving images and audio
 UPLOAD_FOLDER = 'static/uploads'
 AUDIO_FOLDER = 'static/audio'
