@@ -14,11 +14,10 @@ AUDIO_FOLDER = 'static/audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
-# Load the pre-downloaded model
-local_model_dir = "./pretrained_model"
-model = VisionEncoderDecoderModel.from_pretrained(local_model_dir)
-feature_extractor = ViTFeatureExtractor.from_pretrained(local_model_dir)
-tokenizer = AutoTokenizer.from_pretrained(local_model_dir)
+# Load the model once during app startup
+model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
+feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
+tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
 
 @app.route("/", methods=["GET"])
 def index():
@@ -43,7 +42,8 @@ def generate_caption():
         # Generate caption
         image = image.convert("RGB")  # Ensure RGB mode
         inputs = feature_extractor(images=image, return_tensors="pt")
-        outputs = model.generate(inputs.pixel_values)
+        pixel_values = inputs.pixel_values
+        outputs = model.generate(pixel_values)
         caption = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Convert caption to audio
@@ -55,7 +55,7 @@ def generate_caption():
         return jsonify({"caption": caption, "audio_path": f"/static/audio/caption_audio.mp3"})
     except Exception as e:
         print(f"Error generating caption: {e}")
-        return jsonify({"error": "An error occurred while processing the image."}), 500
+        return jsonify({"error": f"An error occurred while processing the image: {e}"}), 500
 
 # Serve static files for images and audio
 @app.route('/static/<path:filename>')
@@ -63,5 +63,7 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
+    port = os.environ.get("PORT", "5000")
+    if not port.isdigit():
+        raise ValueError("The port value is not a valid number.")
+    app.run(host="0.0.0.0", port=int(port), use_reloader=False)
