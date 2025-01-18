@@ -14,10 +14,13 @@ AUDIO_FOLDER = 'static/audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
+
 # Load the model once during app startup
-model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
-feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
-tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=True)
+model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
+feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
+tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
 
 @app.route("/", methods=["GET"])
 def index():
