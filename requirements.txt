@@ -6,3 +6,4 @@ gtts==2.3.2             # Google Text-to-Speech
 gunicorn==20.1.0
 tokenizers==0.13.3
 numpy==1.23.5
+flask-cors
