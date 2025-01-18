@@ -5,22 +5,24 @@ import base64
 from gtts import gTTS
 import os
 from transformers import VisionEncoderDecoderModel, ViTFeatureExtractor, AutoTokenizer
+from functools import lru_cache
 
 app = Flask(__name__)
 
-# Define directories for saving images and audio
+# Directories for saving images and audio
 UPLOAD_FOLDER = 'static/uploads'
 AUDIO_FOLDER = 'static/audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
-
-# Load the model once during app startup
-model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
-feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
-tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", force_download=False)
+# Lazy load models and resources
+@lru_cache(maxsize=1)
+def load_model_resources():
+    print("Loading model and tokenizer...")
+    model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    return model, feature_extractor, tokenizer
 
 @app.route("/", methods=["GET"])
 def index():
@@ -29,7 +31,10 @@ def index():
 @app.route("/generate-caption", methods=["POST"])
 def generate_caption():
     try:
-        # Extract image data from request
+        # Load resources lazily
+        model, feature_extractor, tokenizer = load_model_resources()
+
+        # Extract image data from the request
         data = request.json
         image_data = data.get("image_data")
         if not image_data:
@@ -58,7 +63,7 @@ def generate_caption():
         return jsonify({"caption": caption, "audio_path": f"/static/audio/caption_audio.mp3"})
     except Exception as e:
         print(f"Error generating caption: {e}")
-        return jsonify({"error": f"An error occurred while processing the image: {e}"}), 500
+        return jsonify({"error": "An error occurred while processing the image."}), 500
 
 # Serve static files for images and audio
 @app.route('/static/<path:filename>')
@@ -66,7 +71,5 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 if __name__ == "__main__":
-    port = os.environ.get("PORT", "5000")
-    if not port.isdigit():
-        raise ValueError("The port value is not a valid number.")
-    app.run(host="0.0.0.0", port=int(port), use_reloader=False)
+    port = int(os.getenv("PORT", 5000))  # Default to 5000 if PORT is not defined
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
