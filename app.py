@@ -15,14 +15,13 @@ AUDIO_FOLDER = 'static/audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
-# Lazy load models and resources
-@lru_cache(maxsize=1)
+model, feature_extractor, tokenizer = None, None, None
 def load_model_resources():
-    print("Loading model, tokenizer, and feature extractor...")
+    global model, feature_extractor, tokenizer
     model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
     feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
     tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    return model, feature_extractor, tokenizer
+    
 
 @app.route("/", methods=["GET"])
 def index():
@@ -32,8 +31,8 @@ def index():
 def generate_caption():
     try:
         # Step 1: Load resources lazily
-        model, feature_extractor, tokenizer = load_model_resources()
-
+        load_model_resources()
+        global model, feature_extractor, tokenizer
         # Step 2: Extract and validate image data
         data = request.json
         if not data or "image_data" not in data:
