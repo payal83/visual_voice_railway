@@ -1,5 +1,3 @@
-Here’s a detailed **README.md** file for your Flask project:
-
 ---
 
 # **Flask App: Image Captioning with Audio Generation**
