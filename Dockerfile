@@ -1,19 +1,22 @@
-# Use the Python 3.9-slim base image
 FROM python:3.9-slim
 
-# Set the working directory
+# Install necessary libraries and tools
+RUN apt-get update && apt-get install -y \
+    libjpeg-dev zlib1g-dev libpng-dev libfreetype6-dev curl build-essential && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Set environment variables
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# Set the default port (optional, Railway will override this)
+ENV PORT 5000  # You can set a default port, but Railway will override it.
+
+# Copy project files
 WORKDIR /app
-
-# Install dependencies
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the application code
 COPY . .
 
-# Expose the port that Flask will run on
-EXPOSE 5000
-# Use an official Python image as the base
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD gunicorn app:app --timeout 120 --workers=3 --threads=2 --bind 0.0.0.0:5000
-
+CMD gunicorn app:app --timeout 120 --workers=3 --threads=2 --bind 0.0.0.0:$PORT
