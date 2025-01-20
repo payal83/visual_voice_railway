@@ -31,7 +31,6 @@ def index():
 def generate_caption():
     try:
         # Step 1: Load resources lazily
-        load_model_resources()
         global model, feature_extractor, tokenizer
         # Step 2: Extract and validate image data
         data = request.json
@@ -83,5 +82,6 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 if __name__ == "__main__":
+    load_model_resources()
     port = int(os.getenv("PORT", 5000))  # Default to 5000 if PORT is not defined
     app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
