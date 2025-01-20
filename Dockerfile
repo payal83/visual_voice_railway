@@ -20,5 +20,5 @@ COPY . .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD gunicorn app:app --workers=3 --threads=2 --bind 0.0.0.0:$PORT
+CMD gunicorn app:app --timeout 120 --workers=3 --threads=2 --bind 0.0.0.0:$PORT
 
