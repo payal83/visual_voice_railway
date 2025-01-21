@@ -12,8 +12,8 @@ CORS(app)
 # Directories for saving images and audio
 UPLOAD_FOLDER = 'static/uploads'
 AUDIO_FOLDER = 'static/audio'
-os.makedirs(os.path.join(app.root_path, UPLOAD_FOLDER), exist_ok=True)
-os.makedirs(os.path.join(app.root_path, AUDIO_FOLDER), exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 model, feature_extractor, tokenizer = None, None, None
 def load_model_resources():
