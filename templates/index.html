@@ -9,23 +9,62 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom right, #6dd5ed, #2193b0);
+            background: linear-gradient(to bottom right, #83ddfd, #034eff); /* Changed gradient colors */
             color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            position: relative; /* Ensure absolute positioning works */
+        }
+
+        .appname {
+            background: #0022ff;
+            color: white; /* Ensure text is visible on red background */
+            padding: 1rem; /* Add padding for better visibility */
+            text-align: left; /* Align text to the left */
+            width: 100%; /* Ensure it spans the full width */
+        }
+
+        nav {
+            background: #ffffff;
+            color: white;
+            width: 150px; /* Decreased width */
+            padding: 0.5rem;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: absolute;
+            top: 2rem; /* Adjusted to be below the menu icon */
+            right: 1rem; /* Adjusted to be on the right side */
+            border-radius: 10px; /* Rounded corners */
+        }
+
+        nav a {
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            font-size: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .menu-icon {
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            position: absolute;
+            top: 2.5rem;
+            right: 1rem;
+        }
+
+        .menu-icon:hover + nav,
+        nav:hover {
+            display: flex; /* Show nav on hover */
         }
 
         header {
-            background: #4CAF50;
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            font-size: 2rem;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: none; /* Hide header */
         }
 
         main {
@@ -41,17 +80,17 @@
         video, img {
             border: 2px solid #4CAF50;
             border-radius: 10px;
-            margin: 1rem 0;
+            margin: 0.5rem 0; /* Decreased up and down margin */
             max-width: 100%;
             height: auto;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button {
-            padding: 0.8rem 2rem;
+            padding: 0.5rem 1rem; /* Decreased padding */
             font-size: 1rem;
             color: white;
-            background: #4CAF50;
+            background: #0f2393;
             border: none;
             border-radius: 25px;
             cursor: pointer;
@@ -61,7 +100,7 @@
         }
 
         button:hover {
-            background: #45a049;
+            background: #0f2393;
         }
 
         .loading {
@@ -80,102 +119,208 @@
             font-size: 1rem;
             margin: 0.5rem 0;
         }
+
+        audio {
+            background: #0f2393; /* Set background color */
+            color: white; /* Set text color */
+            width: 90%; /* Decrease width */
+            border-radius: 10px; /* Rounded corners */
+            padding: 0.5rem; /* Add padding */
+        }
+
+        @media (max-width: 1200px) {
+            main {
+                padding: 1.5rem;
+                width: 80%;
+            }
+
+            button {
+                padding: 0.5rem 1rem; /* Decreased padding */
+                font-size: 0.95rem;
+            }
+
+            .results p {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            main {
+                padding: 1.2rem;
+                width: 85%;
+            }
+
+            button {
+                padding: 0.5rem 1rem; /* Decreased padding */
+                font-size: 0.9rem;
+            }
+
+            .results p {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .appname {
+                background: #0f2393;
+                font-size: 1.2rem; /* Decrease font size */
+                padding: 0.5rem; /* Decrease padding */
+            }
+
+            .menu-icon {
+                font-size: 1.5rem; /* Decrease icon size */
+                top: 2.2rem; /* Align with appname */
+            }
+
+            .menu-icon:hover + nav,
+            nav:hover {
+                display: flex; /* Show nav on hover */
+            }
+
+            main {
+                padding: 1rem;
+                width: 100%;
+            }
+
+            video, img {
+                max-width: 100%;
+                height: auto;
+            }
+
+            #captured-image {
+                width: 100%; /* Make captured image full width */
+                height: 60vh; /* Increase vertical size */
+                margin: 0.5rem 0; /* Decreased up and down margin */
+            }
+
+            button {
+                padding: 0.5rem 1rem; /* Decreased padding */
+                font-size: 0.9rem;
+            }
+
+            button i {
+                font-size: 1.5rem; /* Camera icon size */
+            }
+
+            .results p {
+                font-size: 0.9rem;
+            }
+
+            audio {
+                background: #0f2393; /* Set background color */
+                color: white; /* Set text color */
+                width: 90%; /* Decrease width */
+                border-radius: 10px; /* Rounded corners */
+                padding: 0.5rem; /* Add padding */
+            }
+        }
     </style>
 </head>
+<link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
 <body>
-    <header>Camera Caption Generator</header>
+    <i class="ri-menu-line menu-icon" id="menu-icon"></i>
+    <nav id="nav-menu">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    <h1 id="appname" class="appname">VisualVoice</h1>
     <main>
-        <video id="video" autoplay playsinline></video>
+        <video id="video" autoplay></video>
         <canvas id="canvas" style="display:none;"></canvas>
         <img id="captured-image" style="display:none;" alt="Captured Image">
-        <button id="generate-caption-btn" aria-label="Capture image and generate caption">
-            Capture and Generate Caption
-        </button>
+        <button id="generate-caption-btn"><i class="ri-camera-line"></i></button>
         <div class="loading" id="loading">🔄 Generating caption, please wait...</div>
         <div class="results">
             <p id="caption"></p>
-            <audio id="audio" controls style="display:none;"></audio>
+            <audio id="audio" controls style="display:none;" autoplay></audio>
         </div>
     </main>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const capturedImage = document.getElementById('captured-image');
-            const generateCaptionBtn = document.getElementById('generate-caption-btn');
-            const loading = document.getElementById('loading');
-            const captionElement = document.getElementById('caption');
-            const audioElement = document.getElementById('audio');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const capturedImage = document.getElementById('captured-image');
+        const generateCaptionBtn = document.getElementById('generate-caption-btn');
+        const loading = document.getElementById('loading');
+        const captionElement = document.getElementById('caption');
+        const audioElement = document.getElementById('audio');
+        const menuIcon = document.getElementById('menu-icon');
+        const navMenu = document.getElementById('nav-menu');
 
-            // Check for camera support
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Camera access is not supported in this browser.");
-                return;
-            }
+        // Toggle navigation menu
+        menuIcon.addEventListener('mouseover', () => {
+            navMenu.style.display = 'flex';
+        });
 
-            // Initialize the camera
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: "environment" } }
-            })
+        menuIcon.addEventListener('mouseout', () => {
+            navMenu.style.display = 'none';
+        });
+
+        navMenu.addEventListener('mouseover', () => {
+            navMenu.style.display = 'flex';
+        });
+
+        navMenu.addEventListener('mouseout', () => {
+            navMenu.style.display = 'none';
+        });
+
+        // Access the back camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
                 video.srcObject = stream;
             })
             .catch(err => {
-                alert("Unable to access the camera. Please check your device settings.");
+                alert("Camera access is required to capture images.");
                 console.error("Camera error:", err);
             });
 
-            // Capture image and send it to the server
-            generateCaptionBtn.addEventListener('click', () => {
-                if (!video.videoWidth || !video.videoHeight) {
-                    alert("Camera feed is not ready. Please try again.");
-                    return;
-                }
+        // Capture image and generate caption
+        generateCaptionBtn.addEventListener('click', () => {
+            // Hide video and show canvas
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                const context = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Show captured image and hide video
+            const imageData = canvas.toDataURL('image/png');
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
 
-                const imageData = canvas.toDataURL('image/png');
-                capturedImage.src = imageData;
-                capturedImage.style.display = 'block';
-                video.style.display = 'none';
+            // Show loading indicator
+            loading.style.display = 'block';
 
-                loading.style.display = 'block';
-
-                fetch('/generate-caption', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image_data: imageData }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    loading.style.display = 'none';
-                    if (data.error) {
-                        alert(data.error);
-                        return;
-                    }
+            // Send the image data to the backend
+            fetch('/generate-caption', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_data: imageData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    console.log('Caption:', data.caption);
+                    console.log('Audio Path:', data.audio_path);
                     captionElement.textContent = `Caption: ${data.caption}`;
                     audioElement.src = data.audio_path;
                     audioElement.style.display = 'block';
-                })
-                .catch(error => {
-                    loading.style.display = 'none';
-                    console.error("Error:", error);
-                    alert("An error occurred while generating the caption. Please try again.");
-                });
-            });
-
-            // Clean up resources on page unload
-            window.addEventListener('beforeunload', () => {
-                const tracks = video.srcObject?.getTracks();
-                tracks?.forEach(track => track.stop());
+                    audioElement.play().catch(error => {
+                        console.error("Audio play error:", error);
+                    }); // Automatically play the audio
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                console.error("Error:", error);
+                alert("An error occurred while generating the caption.");
             });
         });
     </script>
