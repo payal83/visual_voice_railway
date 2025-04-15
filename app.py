@@ -2,86 +2,83 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 from io import BytesIO
 import base64
-from gtts import gTTS
 import os
+from gtts import gTTS
 from transformers import VisionEncoderDecoderModel, ViTFeatureExtractor, AutoTokenizer
-from flask_cors import CORS
+from ultralytics import YOLO  # Fast YOLOv8 model
+from pyngrok import ngrok
 
 app = Flask(__name__)
-CORS(app) 
-# Directories for saving images and audio
+
 UPLOAD_FOLDER = 'static/uploads'
 AUDIO_FOLDER = 'static/audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
-model, feature_extractor, tokenizer = None, None, None
-def load_model_resources():
-    global model, feature_extractor, tokenizer
-    model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    
+# Load Models
+caption_model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 
-@app.route("/", methods=["GET"])
-def index():
-    return render_template("index.html")
+yolo_model = YOLO("yolov8n.pt")  # Use YOLOv8 nano model (fastest)
+
+@app.after_request
+def add_ngrok_header(response):
+    # Add the custom header to skip ngrok's browser warning
+    response.headers['ngrok-skip-browser-warning'] = 'true'
+    return response
+
+
+@app.route("/")
+def home():
+    return render_template("index1.html")
+
+
 
 @app.route("/generate-caption", methods=["POST"])
 def generate_caption():
     try:
-        # Step 1: Load resources lazily
-        global model, feature_extractor, tokenizer
-        # Step 2: Extract and validate image data
         data = request.json
-        if not data or "image_data" not in data:
-            return jsonify({"error": "Invalid request: No image data provided"}), 400
+        image_data = data.get("image_data")
+        if not image_data:
+            return jsonify({"error": "No image data received"}), 400
 
-        image_data = data["image_data"]
-        if "," not in image_data:
-            return jsonify({"error": "Invalid image format"}), 400
-
-        # Step 3: Decode and save the image
-        image_data = image_data.split(",")[1]  # Remove data URI prefix
+        # Decode and save the image
+        image_data = image_data.split(",")[1]
         image_bytes = base64.b64decode(image_data)
-        try:
-            image = Image.open(BytesIO(image_bytes))
-            image = image.convert("RGB")  # Ensure RGB mode
-        except Exception as e:
-            return jsonify({"error": f"Failed to process image: {str(e)}"}), 400
-
+        image = Image.open(BytesIO(image_bytes)).convert("RGB")
         image_path = os.path.join(UPLOAD_FOLDER, "captured_image.png")
         image.save(image_path)
 
-        # Step 4: Generate caption
-        try:
-            inputs = feature_extractor(images=image, return_tensors="pt")
-            pixel_values = inputs.pixel_values
-            outputs = model.generate(pixel_values)
-            caption = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        except Exception as e:
-            return jsonify({"error": f"Failed to generate caption: {str(e)}"}), 500
+        # Generate Image Caption (Fast)
+        inputs = feature_extractor(images=image, return_tensors="pt")
+        outputs = caption_model.generate(inputs.pixel_values)
+        caption = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Step 5: Convert caption to audio
-        try:
-            tts = gTTS(caption)
-            audio_path = os.path.join(AUDIO_FOLDER, "caption_audio.mp3")
-            tts.save(audio_path)
-        except Exception as e:
-            return jsonify({"error": f"Failed to generate audio: {str(e)}"}), 500
+        # Object Detection (Fast with YOLOv8)
+        results = yolo_model(image_path)  # Run YOLO detection
+        detected_objects = list(set([yolo_model.names[int(obj[5])] for obj in results[0].boxes.data]))  # Unique object names
 
-        # Step 6: Return response
-        return jsonify({"caption": caption, "audio_path": f"/static/audio/caption_audio.mp3"})
+        detected_text = ", ".join(detected_objects) if detected_objects else "No objects detected"
+
+        # Convert Caption & Objects to Speech
+        final_text = f"Caption: {caption}. Detected objects: {detected_text}"
+        tts = gTTS(final_text)
+        audio_path = os.path.join(AUDIO_FOLDER, "caption_audio.mp3")
+        tts.save(audio_path)
+
+        return jsonify({
+            "caption": caption,
+            "detected_objects": detected_text,
+            "audio_path": f"/static/audio/caption_audio.mp3"
+        })
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-# Serve static files for images and audio
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    return send_from_directory('static', filename)
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while processing the image."}), 500
 
 if __name__ == "__main__":
-    load_model_resources()
-    port = int(os.getenv("PORT", 5000))  # Default to 5000 if PORT is not defined
-    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
+    public_url = ngrok.connect(5000)
+    print(f"ngrok tunnel available at: {public_url}")
+
+    # Run Flask app
+    app.run(port=5000)
